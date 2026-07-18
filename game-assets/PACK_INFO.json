@@ -1,0 +1,14 @@
+{
+  "packName": "isometric_game_assets_for_codex",
+  "version": 1,
+  "itemCount": 118,
+  "furnitureCount": 12,
+  "furnitureDirections": 2,
+  "itemSizes": [
+    128,
+    256
+  ],
+  "furnitureSize": 512,
+  "atlas": "atlas/items_atlas.png",
+  "manifest": "manifest/items_manifest.json"
+}

@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="theme-color" content="#ff713f" />
+    <title>夜市一口香</title>
+    <script type="module" crossorigin src="./game.js?v=mrhz48fj"></script>
+    <link rel="stylesheet" crossorigin href="./styles.css?v=mrhz48fj">
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="game-card" aria-label="夜市一口香游戏">
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-mark">✦</span>
+            <div>
+              <p data-i18n="brandEyebrow">今晚的夜市</p>
+              <h1 data-i18n="gameTitle">夜市一口香</h1>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <label class="language-picker" data-i18n-title="languageTooltip" title="语言 / Language">
+              <span>🌐</span>
+              <select id="languageSelect" aria-label="语言">
+                <option value="zh-CN" selected>简体中文</option>
+                <option value="ko">한국어</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+            <div class="stats" aria-label="游戏状态">
+            <div class="stat-pill" data-i18n-title="coinTooltip" title="金币">
+              <span>🪙</span><strong id="coinCount">0</strong>
+            </div>
+            <div class="stat-pill timer-pill" data-i18n-title="timerTooltip" title="剩余营业时间">
+              <span>⏱</span><strong id="timer">60</strong>
+            </div>
+            <div class="stat-pill earnings-pill" data-i18n-title="earningsTooltip" title="今日待结算">
+              <span>🧾</span><strong id="todayEarnings">0</strong>
+            </div>
+            <div class="stat-pill ticket-pill" data-i18n-title="ticketTooltip" title="营业券">
+              <span>🎟️</span><strong id="businessTickets">5/5</strong>
+            </div>
+              <button class="sound-toggle" id="soundToggle" type="button" aria-label="关闭音效" title="音效开关">🔊</button>
+            </div>
+          </div>
+        </header>
+
+        <nav class="main-nav" aria-label="主菜单">
+          <button class="nav-button is-active" type="button" data-view="gameView">🎮 <span data-i18n="menuGame">游戏</span></button>
+          <button class="nav-button" type="button" data-view="decorateView">🎪 <span data-i18n="menuDecorate">装扮</span></button>
+          <button class="nav-button" type="button" data-view="shopView">🛍️ <span data-i18n="menuShop">SHOP</span></button>
+          <button class="nav-button hidden" id="cityNavButton" type="button" data-view="cityView">🏙️ <span data-i18n="menuCity">城市</span></button>
+        </nav>
+
+        <section class="view" id="gameView">
+          <section class="market-scene" aria-label="我的夜市摊位">
+            <div class="moon">☾</div>
+            <div class="sky-dot dot-one"></div>
+            <div class="sky-dot dot-two"></div>
+            <div class="sky-dot dot-three"></div>
+            <div class="lantern-string"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="stall">
+              <div class="stall-sign">一口小摊</div>
+              <div class="stall-awning"><span></span><span></span><span></span></div>
+              <div class="stall-body"><span class="stall-counter">🍜</span><span class="stall-cook">🧑‍🍳</span></div>
+              <div class="installed-decor-layer"></div>
+            </div>
+            <div class="customer-stage" id="customerStage" aria-hidden="true"></div>
+            <p class="scene-caption" id="sceneCaption">为客人完成美味订单吧！</p>
+          </section>
+
+          <section class="day-start-panel" id="dayStartPanel">
+            <div><p data-i18n="dayReady">准备好开张了吗？</p><h2 data-i18n="ticketGuide">每次营业消耗1张营业券</h2><small id="ticketRefillTime">10:00</small></div>
+            <button class="primary-button" id="startBusinessButton" type="button">🎪 <span data-i18n="startBusiness">开始营业</span></button>
+          </section>
+
+          <section class="play-area" id="playArea">
+            <div class="orders-panel">
+              <div class="section-heading">
+                <div>
+                  <p data-i18n="hungryGuests">正在等餐的客人</p>
+                  <h2><span data-i18n="ordersTitle">订单</span> <span id="orderProgress">0</span></h2>
+                </div>
+                <span class="tip-badge" id="gameTip" data-i18n="matchTip">连成3个以上</span>
+              </div>
+              <div class="orders" id="orders" aria-live="polite"></div>
+              <div class="utility-buttons">
+                <button class="secondary-button" id="shuffleButton" type="button">↻ <span data-i18n="shuffle">重新洗牌</span> <span>−8 🪙</span></button>
+                <button class="secondary-button hint-button hidden" id="hintButton" type="button">💡 <span data-i18n="useHint">使用提示</span></button>
+                <button class="settle-button hidden" id="settleButton" type="button">🧾 <span data-i18n="settleNow">立即结算</span></button>
+              </div>
+            </div>
+
+            <section class="board-wrap" aria-label="食材拼图">
+              <div class="combo-message" id="comboMessage" aria-live="polite"></div>
+              <div class="board" id="board" role="grid" aria-label="食材方块"></div>
+              <p class="how-to" id="gameInstructions" data-i18n-html="dragHelp">向相邻方向<b>拖动</b>食材，连成3个以上。</p>
+            </section>
+          </section>
+        </section>
+
+        <section class="view decorate-view hidden" id="decorateView">
+          <div class="view-heading">
+            <div>
+              <p data-i18n="decorateEyebrow">我的收藏</p>
+              <h2 data-i18n="decorateTitle">装扮夜市摊位</h2>
+              <p class="unlock-hint" id="unlockHint">提高装扮分数可解锁更多摆放位。</p>
+              <div class="unlock-progress"><span id="unlockProgressBar"></span><b id="unlockProgressText">0 / 300 ⭐</b></div>
+            </div>
+            <div class="decor-heading-actions">
+              <div class="pet-loot-actions">
+                <button class="pet-loot-button cat-loot-button" id="catLootButton" type="button" data-i18n-title="catLootHelp" title="领取寻宝猫带回的奖励">
+                  <span>🐱</span><small data-i18n="catLoot">猫咪奖励</small><b id="catLootCount">0</b>
+                </button>
+                <button class="pet-loot-button dog-loot-button" id="dogLootButton" type="button" data-i18n-title="dogLootHelp" title="领取幸运犬带回的奖励">
+                  <span>🐶</span><small data-i18n="dogLoot">狗狗奖励</small><b id="dogLootCount">0</b>
+                </button>
+              </div>
+              <span class="decor-score">⭐ <strong id="decorScore">0</strong></span>
+              <span class="slot-count">🧩 <strong id="slotCount">3</strong></span>
+              <button class="reset-link" id="resetLayoutButton" type="button" data-i18n="resetLayout">重置摆放</button>
+            </div>
+          </div>
+          <section class="decor-studio" aria-label="摊位装扮预览">
+            <div class="placement-toolbar">
+              <div><strong id="placementSelection" data-i18n="placementNone">从背包选择家具后，点击地板格子进行摆放</strong><small id="placementHelp" data-i18n="placementHelp">点击已摆放的家具后，可以移动到其他格子</small></div>
+              <div class="placement-actions">
+                <button id="rotateFurniture" type="button" data-i18n="rotateFurniture">旋转</button>
+                <button id="zoomDecorOut" type="button" aria-label="缩小">−</button>
+                <button id="resetDecorCamera" type="button" data-i18n-title="cameraReset" title="重置视角">◎</button>
+                <button id="zoomDecorIn" type="button" aria-label="放大">＋</button>
+                <button id="cancelPlacement" type="button" data-i18n="cancelPlacement">取消选择</button>
+              </div>
+            </div>
+            <div class="floor-palette hidden" id="floorPalette">
+              <strong data-i18n="floorPalette">地板样式</strong>
+              <button class="is-active" type="button" data-floor="wood"><i></i><span data-i18n="floorWood">木地板</span></button>
+              <button type="button" data-floor="light"><i></i><span data-i18n="floorLight">亮色瓷砖</span></button>
+              <button type="button" data-floor="dark"><i></i><span data-i18n="floorDark">深色瓷砖</span></button>
+            </div>
+            <div class="isometric-room" id="decorRoom">
+              <div class="decor-canvas-host" id="decorCanvasHost" role="application" aria-label="家具摆放游戏画布"></div>
+            </div>
+            <nav class="decor-mode-dock" aria-label="装扮模式">
+              <button id="decorBackButton" type="button">↩️ <span data-i18n="decorBack">返回</span></button>
+              <button id="decorFurnitureMode" class="is-active" type="button">🪑 <span data-i18n="furnitureMode">家具模式</span></button>
+              <button id="decorMoveMode" type="button">✋ <span data-i18n="moveMode">移动模式</span></button>
+              <button id="decorGridMode" type="button">◇ <span data-i18n="tileMode">地板编辑</span></button>
+              <button id="decorDeleteMode" type="button">🗑️ <span data-i18n="deleteMode">删除模式</span></button>
+              <button id="decorShopShortcut" type="button">🏪 <span data-i18n="menuShop">SHOP</span></button>
+            </nav>
+            <p class="decor-room-status" id="expansionStatus">摊位等级 1</p>
+          </section>
+          <div class="stall-name-editor">
+            <label for="stallNameInput" data-i18n="stallNameLabel">摊位名称</label>
+            <input id="stallNameInput" type="text" maxlength="12" placeholder="输入摊位名称" />
+            <button id="saveStallName" type="button" data-i18n="saveName">保存名称</button>
+          </div>
+          <button class="bag-button" id="bagButton" type="button">
+            <span class="bag-icon">🎒</span>
+            <span><strong data-i18n="myBag">我的装饰背包</strong><small data-i18n="bagHelp">打开背包，选择要摆放的装饰</small></span>
+            <b id="bagCount">0</b>
+          </button>
+          <section class="bag-panel hidden" id="bagPanel">
+            <div class="inventory-heading">
+              <h2 data-i18n="ownedItems">已拥有的装饰</h2>
+              <p data-i18n="inventoryHelp">点击物品即可摆放；已摆放的物品点击后会收回背包。</p>
+            </div>
+            <div class="bag-controls">
+              <select id="bagSort" aria-label="排序">
+                <option value="score" data-i18n="sortScore">按装扮分数</option>
+                <option value="rarity" data-i18n="sortRarity">按稀有度</option>
+                <option value="name" data-i18n="sortName">按名称</option>
+                <option value="price" data-i18n="sortPrice">按价格</option>
+                <option value="effect" data-i18n="sortEffect">按能力</option>
+                <option value="acquired" data-i18n="sortAcquired">按获得顺序</option>
+              </select>
+              <select id="bagRarity" aria-label="稀有度筛选">
+                <option value="all" data-i18n="filterAll">全部等级</option>
+                <option value="common" data-i18n="common">普通</option>
+                <option value="rare" data-i18n="rare">稀有</option>
+                <option value="epic" data-i18n="epic">史诗</option>
+                <option value="legendary" data-i18n="legendary">传说</option>
+              </select>
+              <select id="bagGroup" aria-label="分组">
+                <option value="flat" data-i18n="groupNone">不分组</option>
+                <option value="rarity" data-i18n="groupRarity">按等级分组</option>
+              </select>
+            </div>
+            <div class="decorations inventory-grid" id="decorInventory"></div>
+          </section>
+        </section>
+
+        <section class="view shop-view hidden" id="shopView">
+          <div class="shop-hero">
+            <p data-i18n="shopEyebrow">夜市装饰商店</p>
+            <h2 data-i18n="gachaTitle">好运装饰机</h2>
+            <p data-i18n="gachaSubtitle">抽取装饰，还有机会获得摊位扩建券！</p>
+            <p class="shop-city-wallet">🏙️ <span data-i18n="cityWallet">城市资金</span> <strong id="shopCityMoney">0</strong>元</p>
+            <div class="gacha-machine" id="gachaMachine" aria-hidden="true">
+              <div class="gacha-rays"></div>
+              <div class="gacha-globe"><span id="gachaPreview">🎁</span><div class="coin-burst" id="coinBurst"></div></div>
+              <div class="gacha-base">LUCKY</div>
+            </div>
+            <div class="gacha-result" id="gachaResult" aria-live="polite">
+              <span>✨</span><strong data-i18n="readyToDraw">好运正在等你</strong>
+            </div>
+            <div class="draw-actions">
+              <button class="primary-button draw-button" id="drawButton" type="button"><span data-i18n="drawOnce">抽取一次</span> · 50 🪙</button>
+              <button class="primary-button draw-button draw-ten-button" id="drawTenButton" type="button"><span data-i18n="drawTen">抽取十次</span> · 450 🪙</button>
+            </div>
+            <div class="odds-row" aria-label="抽取概率">
+              <span class="rarity-common" id="commonOdds">普通 70%</span>
+              <span class="rarity-rare" id="rareOdds">稀有 20%</span>
+              <span class="rarity-epic" id="epicOdds">史诗 5%</span>
+              <span class="rarity-legendary" id="legendaryOdds">传说 3%</span>
+              <span class="rarity-expansion" id="expansionOdds">扩建券 2%</span>
+            </div>
+            <p class="booster-status" id="boosterStatus">未使用概率宝箱</p>
+            <article class="name-ticket-product">
+              <span>🎫</span><div><strong data-i18n="nameTicket">摊位改名券</strong><small data-i18n="nameTicketHelp">解除一次名称锁定</small></div>
+              <button id="buyNameTicket" type="button"><span data-i18n="buyNameTicket">购买</span> · 1500元</button>
+            </article>
+            <article class="name-ticket-product expansion-ticket-product">
+              <span>🏗️</span><div><strong data-i18n="expansionTicketShop">摊位扩建券</strong><small id="expansionTicketHelp">每次购买价格上涨3000元</small></div>
+              <button id="buyExpansionTicket" type="button">5000元</button>
+            </article>
+            <article class="coupon-product">
+              <span>🎟️</span>
+              <div><strong data-i18n="couponTitle">兑换码</strong><small data-i18n="couponHelp">每个兑换码只能使用一次</small></div>
+              <div class="coupon-entry">
+                <input id="couponInput" type="text" inputmode="text" maxlength="32" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="兑换码" />
+                <button id="redeemCoupon" type="button" data-i18n="couponRedeem">兑换</button>
+              </div>
+            </article>
+          </div>
+          <section class="score-chest-section">
+            <div class="inventory-heading">
+              <div><p data-i18n="scoreChestEyebrow">装扮分数限定</p><h2 data-i18n="scoreChestTitle">阶段专属宝箱</h2></div>
+              <p data-i18n="scoreChestHelp">每个宝箱只会抽出该分数阶段解锁的装饰</p>
+            </div>
+            <div class="score-chest-grid" id="scoreChestGrid"></div>
+          </section>
+          <section class="background-shop-section">
+            <div class="inventory-heading">
+              <div><p data-i18n="backgroundEyebrow">豪华场景</p><h2 data-i18n="backgroundTitle">夜市背景商店</h2></div>
+              <p data-i18n="backgroundHelp">用城市资金购买，背景可在每座城市分别装备</p>
+            </div>
+            <div class="background-grid" id="backgroundGrid"></div>
+          </section>
+          <div class="catalog-section">
+            <div class="inventory-heading">
+              <h2 id="catalogTitle" data-i18n="catalogTitle">装饰图鉴 · 119种</h2>
+              <p id="catalogHelp" data-i18n="catalogHelp">基础37种 · 装扮分数可解锁82种</p>
+            </div>
+            <div class="catalog-grid" id="shopCatalog"></div>
+          </div>
+        </section>
+        <section class="view city-view hidden" id="cityView">
+          <div class="city-income-card">
+            <div><p data-i18n="cityIncomeEyebrow">离线城市收益</p><h2><span id="cityStoredIncome">0</span> / 3000元</h2><small data-i18n="cityIncomeRate">现实时间每小时积累300元</small></div>
+            <div class="city-wallet"><span data-i18n="cityWallet">城市资金</span><strong><b id="cityMoney">0</b>元</strong></div>
+            <button id="claimCityIncome" type="button" data-i18n="claimIncome">领取收益</button>
+          </div>
+          <div class="city-heading"><p data-i18n="citySelectEyebrow">经营地图</p><h2 data-i18n="citySelectTitle">选择夜市城市</h2></div>
+          <div class="city-grid" id="cityGrid"></div>
+        </section>
+        <div class="toast" id="toast" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <div class="modal hidden" id="gameOverModal" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+      <div class="modal-content">
+        <span class="modal-emoji">🎉</span>
+        <p data-i18n="closingEyebrow">今晚的夜市</p>
+        <h2 id="gameOverTitle" data-i18n="closingTitle">圆满收摊！</h2>
+        <p class="modal-score"><strong id="finalOrders">0</strong> <span data-i18n="completedOrders">份订单已完成</span></p>
+        <div class="settlement-sheet">
+          <p><span data-i18n="matchIncome">连线收入</span><strong id="settlementMatch">0</strong></p>
+          <p><span data-i18n="orderIncome">订单收入</span><strong id="settlementOrders">0</strong></p>
+          <p><span data-i18n="petIncome">宠物收入</span><strong id="settlementPets">0</strong></p>
+          <p><span data-i18n="overtimeIncome">加时奖励</span><strong id="settlementOvertime">0</strong></p>
+          <p class="settlement-penalty"><span data-i18n="failedOrderPenalty">超时订单罚款</span><strong id="settlementPenalty">−0</strong></p>
+          <p><span data-i18n="passiveIncome">持有被动奖励</span><strong id="settlementPassive">0</strong></p>
+          <p class="settlement-total"><span data-i18n="settlementTotal">本日结算</span><strong id="settlementTotal">0 🪙</strong></p>
+        </div>
+        <button class="primary-button" id="restartButton" type="button" data-i18n="nextDay">明天继续营业</button>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="petLootModal" role="dialog" aria-modal="true" aria-labelledby="petLootTitle">
+      <div class="modal-content pet-loot-modal-content">
+        <span class="modal-emoji" id="petLootIcon">🐱</span>
+        <h2 id="petLootTitle">宠物带回的奖励</h2>
+        <p id="petLootSummary"></p>
+        <div class="pet-loot-grid" id="petLootGrid"></div>
+        <button class="primary-button" id="closePetLootModal" type="button" data-i18n="petLootClose">确认</button>
+      </div>
+    </div>
+
+  </body>
+</html>
