@@ -19,6 +19,7 @@ const SAVE_KEY = "nightMarketProgressV2";
 const TICKET_REFILL_MS = 10 * 60 * 1000;
 const DECOR_EDITOR_VERSION = 3;
 const MAX_DECOR_CAPACITY_SCORE = 1000;
+const DECOR_RUNTIME_READY_EVENT = "decor-world-ready";
 
 const I18N = {
   "zh-CN": {
@@ -2031,6 +2032,17 @@ function applyDecorCamera() {
   window.decorWorldRuntime?.setCamera(state.decorCamera);
 }
 
+function syncDecorWorld() {
+  const runtime = window.decorWorldRuntime;
+  if (!runtime) {
+    el.decorGrid?.classList.add("is-runtime-missing");
+    return false;
+  }
+  el.decorGrid?.classList.remove("is-runtime-missing");
+  runtime.sync();
+  return true;
+}
+
 function adjustDecorZoom(delta) {
   state.decorCamera.zoom = Math.max(.7, Math.min(2.2, Math.round((state.decorCamera.zoom + delta) * 10) / 10)); applyDecorCamera(); saveProgress();
 }
@@ -2056,7 +2068,7 @@ function placeSelectedAt(x, y) {
   normalizePlacements();
   const item = decorItem(selection.itemId); if (!item) return;
   const rotation = selection.rotation || 0; const excludeIndex = selection.mode === "move" ? selection.index : -1;
-  if (!canPlaceFurniture(item, x, y, rotation, excludeIndex)) { showMessage(t("placementBlocked")); playSound("invalid"); window.decorWorldRuntime?.sync(); return; }
+  if (!canPlaceFurniture(item, x, y, rotation, excludeIndex)) { showMessage(t("placementBlocked")); playSound("invalid"); syncDecorWorld(); return; }
   if (selection.mode === "move") {
     if (!state.placements[selection.index]) return;
     state.placements[selection.index] = { uid: state.placements[selection.index].uid || newPlacementUid(), id: item.id, x, y, rotation };
@@ -2073,7 +2085,7 @@ function renderDecorRoom() {
   if (!el.decorGrid) return;
   normalizePlacements(); updatePlacementToolbar();
   el.decorRoom.dataset.size = String(decorGridSize()); el.decorGrid.dataset.mode = state.decorEditMode;
-  window.decorWorldRuntime?.sync();
+  syncDecorWorld();
 }
 
 function scoreChestItems(score) { return BONUS_DECOR_ITEMS.filter((item) => item.unlockScore === score); }
@@ -2891,7 +2903,7 @@ function setupDecorCameraControls() {
     if (event.key === "Escape") cancelPlacementSelection();
     if (event.key.toLowerCase() === "r") { event.preventDefault(); rotateSelectedFurniture(); }
   });
-  window.addEventListener?.("decor-world-ready", renderDecorRoom);
+  window.addEventListener?.(DECOR_RUNTIME_READY_EVENT, renderDecorRoom);
 }
 
 function decorFurnitureKind(item) {
